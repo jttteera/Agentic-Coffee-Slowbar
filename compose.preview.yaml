@@ -1,0 +1,61 @@
+# Additive demo services; keep the existing localhost app and data unchanged.
+# Use with compose.yaml and .env.docker. PREVIEW_ORIGIN/PREVIEW_HOST are public,
+# non-secret values supplied after cloudflared prints its temporary URL.
+services:
+  preview-db:
+    image: postgres:17-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    environment:
+      POSTGRES_DB: coffee_preview
+      POSTGRES_USER: coffee
+      POSTGRES_PASSWORD: ${COFFEE_DB_PASSWORD:?Run app/docker/init_env.py first}
+    volumes:
+      - coffee_preview_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U coffee -d coffee_preview']
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    restart: "no"
+
+  preview-app:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    ports:
+      - '127.0.0.1:18088:8088'
+    environment:
+      BIND_HOST: 0.0.0.0
+      PORT: '8088'
+      COFFEE_DATABASE_URL: postgresql://coffee:${COFFEE_DB_PASSWORD:?Run app/docker/init_env.py}@preview-db:5432/coffee_preview
+      PUBLIC_ORIGIN: ${PREVIEW_ORIGIN:?Set the HTTPS tunnel origin}
+      ALLOWED_HOSTS: ${PREVIEW_HOST:?Set the tunnel hostname without scheme}
+      COOKIE_SECURE: 'true'
+      # Customer-only preview: a separate database has no existing staff sessions.
+      COFFEE_STAFF_TOKEN: ''
+      AI_MODE: ${AI_MODE:-demo}
+      COFFEE_DEBUG_UI: ${PREVIEW_DEBUG_UI:-false}
+      AI_PROVIDER: ${AI_PROVIDER:-gemini}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-3.1-flash-lite}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
+      LIGHTRAG_URL: ${LIGHTRAG_URL:-http://lightrag:9621}
+      LIGHTRAG_API_KEY: ${LIGHTRAG_API_KEY:?Run app/docker/init_env.py}
+    depends_on:
+      preview-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8088/health", timeout=3)']
+      interval: 10s
+      timeout: 4s
+      retries: 6
+      start_period: 10s
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    restart: "no"
+
+volumes:
+  coffee_preview_db:

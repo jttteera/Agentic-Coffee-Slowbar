@@ -1,0 +1,35 @@
+# Allow only application/runtime/build files; never upload the research checkout.
+*
+!api
+!api/index.py
+!app
+!app/server.py
+!app/domain.py
+!app/providers.py
+!app/knowledge_fallback.py
+!app/agent_tools.py
+!app/staff_auth.py
+!app/coffee_hosting.py
+!app/requirements.txt
+!app/data
+!app/data/catalog.demo.json
+!app/data/shop-handbook.md
+!app/data/knowledge-mock.md
+!app/static
+!app/static/**
+!scripts
+!scripts/deploy
+!scripts/deploy/build_static.py
+!requirements.txt
+!vercel.json
+!.python-version
+!.vercelignore
+# Defense in depth for nested local artifacts.
+**/.env*
+**/.runtime/**
+**/.DS_Store
+**/__pycache__/**
+**/*.pyc
+**/*.sqlite*
+**/*.pem
+**/*.key

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "python3 scripts/deploy/build_static.py",
+  "outputDirectory": "public",
+  "regions": ["sin1"],
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 300,
+      "includeFiles": "app/**",
+      "excludeFiles": "{app/static/**,app/tests/**,app/.runtime/**,**/.env*,**/__pycache__/**}"
+    }
+  },
+  "rewrites": [
+    {"source": "/chat", "destination": "/index.html"},
+    {"source": "/health", "destination": "/api/index"},
+    {"source": "/api/:path*", "destination": "/api/index"}
+  ],
+  "headers": [{
+    "source": "/(.*)",
+    "headers": [
+      {"key": "X-Content-Type-Options", "value": "nosniff"},
+      {"key": "X-Frame-Options", "value": "DENY"},
+      {"key": "Referrer-Policy", "value": "no-referrer"},
+      {"key": "Content-Security-Policy", "value": "default-src 'self'; img-src 'self' blob:; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"}
+    ]
+  }]
+}

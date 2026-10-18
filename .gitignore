@@ -1,0 +1,10 @@
+.env.docker
+.env.docker.*
+!.env.docker.example
+
+# Vercel account links, generated static build and pulled environment files
+.vercel/
+public/
+.env.vercel*
+.env.local
+.env.*.local

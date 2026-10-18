@@ -1,0 +1,12 @@
+**
+!app/
+!app/Dockerfile
+!app/requirements.txt
+!app/server.py
+!app/domain.py
+!app/providers.py
+!app/ingest.py
+!app/static/
+!app/static/**
+!app/data/
+!app/data/**
